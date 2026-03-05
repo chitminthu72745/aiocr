@@ -9,6 +9,8 @@ export default function App() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [drag, setDrag] = useState(false);
+    const [jsonEditOpen, setJsonEditOpen] = useState(false);
+    const [jsonText, setJsonText] = useState("");
     const navigate = useNavigate();
     const handleUpload = useCallback(async () => {
         if (!file)
@@ -69,6 +71,26 @@ export default function App() {
             catch { }
         }
     }, [data]);
+    useEffect(() => {
+        if (data) {
+            try {
+                setJsonText(JSON.stringify(data, null, 2));
+            }
+            catch { }
+        }
+    }, [data]);
+    const saveEditedJson = useCallback(() => {
+        try {
+            const parsed = JSON.parse(jsonText);
+            setData(parsed);
+            sessionStorage.setItem("uploadData", JSON.stringify(parsed));
+            setError(null);
+            setJsonEditOpen(false);
+        }
+        catch (e) {
+            setError("Invalid JSON format");
+        }
+    }, [jsonText]);
     return (_jsxs("div", { style: styles.container, children: [_jsx("h1", { style: styles.title, children: "PDF Upload" }), _jsx("p", { style: styles.subtitle, children: "POST /webhook-test/upload_pdf" }), _jsxs("div", { style: {
                     ...styles.dropzone,
                     ...(drag ? styles.dropzoneDrag : {}),
@@ -76,7 +98,20 @@ export default function App() {
                     ...styles.button,
                     opacity: !file || loading ? 0.5 : 1,
                     cursor: !file || loading ? "not-allowed" : "pointer",
-                }, onClick: handleUpload, disabled: !file || loading, children: loading ? "Uploading…" : "Upload" }), error && _jsx("p", { style: styles.error, children: error }), data && (_jsxs(_Fragment, { children: [_jsxs("div", { style: styles.result, children: [_jsx("h2", { style: styles.resultTitle, children: "Response JSON" }), _jsx("pre", { style: styles.pre, children: JSON.stringify(data, null, 2) })] }), _jsx("button", { style: {
+                }, onClick: handleUpload, disabled: !file || loading, children: loading ? "Uploading…" : "Upload" }), error && _jsx("p", { style: styles.error, children: error }), data && (_jsxs(_Fragment, { children: [_jsxs("div", { style: styles.result, children: [_jsx("h2", { style: styles.resultTitle, children: "Response JSON" }), !jsonEditOpen ? (_jsxs(_Fragment, { children: [_jsx("pre", { style: styles.pre, children: JSON.stringify(data, null, 2) }), _jsx("button", { style: { ...styles.button, marginTop: 12, background: "#64748b", color: "#fff" }, onClick: () => setJsonEditOpen(true), children: "Edit JSON" })] })) : (_jsxs(_Fragment, { children: [_jsx("textarea", { value: jsonText, onChange: (e) => setJsonText(e.target.value), style: {
+                                            width: "100%",
+                                            minHeight: 220,
+                                            background: "#0b1220",
+                                            color: "#e2e8f0",
+                                            border: "1px solid #334155",
+                                            borderRadius: 8,
+                                            padding: 12,
+                                            fontFamily: "ui-monospace, Menlo, Consolas, monospace",
+                                            fontSize: 13,
+                                        } }), _jsxs("div", { style: { display: "flex", gap: 8, marginTop: 8 }, children: [_jsx("button", { style: { ...styles.button, background: "#22c55e", color: "#0f172a", width: "auto", padding: "10px 16px" }, onClick: saveEditedJson, children: "Save JSON" }), _jsx("button", { style: { ...styles.button, background: "#ef4444", color: "#fff", width: "auto", padding: "10px 16px" }, onClick: () => {
+                                                    setJsonEditOpen(false);
+                                                    setJsonText(JSON.stringify(data, null, 2));
+                                                }, children: "Cancel" })] })] }))] }), _jsx("button", { style: {
                             ...styles.button,
                             marginTop: 12,
                             background: "#22c55e",

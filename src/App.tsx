@@ -11,6 +11,8 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [drag, setDrag] = useState(false);
+  const [jsonEditOpen, setJsonEditOpen] = useState(false);
+  const [jsonText, setJsonText] = useState("");
   const navigate = useNavigate();
 
   const handleUpload = useCallback(async () => {
@@ -71,6 +73,26 @@ export default function App() {
     }
   }, [data]);
 
+  useEffect(() => {
+    if (data) {
+      try {
+        setJsonText(JSON.stringify(data, null, 2));
+      } catch {}
+    }
+  }, [data]);
+
+  const saveEditedJson = useCallback(() => {
+    try {
+      const parsed = JSON.parse(jsonText);
+      setData(parsed);
+      sessionStorage.setItem("uploadData", JSON.stringify(parsed));
+      setError(null);
+      setJsonEditOpen(false);
+    } catch (e) {
+      setError("Invalid JSON format");
+    }
+  }, [jsonText]);
+
   return (
     <div style={styles.container}>
       <h1 style={styles.title}>PDF Upload</h1>
@@ -116,7 +138,52 @@ export default function App() {
         <>
           <div style={styles.result}>
             <h2 style={styles.resultTitle}>Response JSON</h2>
-            <pre style={styles.pre}>{JSON.stringify(data, null, 2)}</pre>
+            {!jsonEditOpen ? (
+              <>
+                <pre style={styles.pre}>{JSON.stringify(data, null, 2)}</pre>
+                <button
+                  style={{ ...styles.button, marginTop: 12, background: "#64748b", color: "#fff" }}
+                  onClick={() => setJsonEditOpen(true)}
+                >
+                  Edit JSON
+                </button>
+              </>
+            ) : (
+              <>
+                <textarea
+                  value={jsonText}
+                  onChange={(e) => setJsonText(e.target.value)}
+                  style={{
+                    width: "100%",
+                    minHeight: 220,
+                    background: "#0b1220",
+                    color: "#e2e8f0",
+                    border: "1px solid #334155",
+                    borderRadius: 8,
+                    padding: 12,
+                    fontFamily: "ui-monospace, Menlo, Consolas, monospace",
+                    fontSize: 13,
+                  }}
+                />
+                <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                  <button
+                    style={{ ...styles.button, background: "#22c55e", color: "#0f172a", width: "auto", padding: "10px 16px" }}
+                    onClick={saveEditedJson}
+                  >
+                    Save JSON
+                  </button>
+                  <button
+                    style={{ ...styles.button, background: "#ef4444", color: "#fff", width: "auto", padding: "10px 16px" }}
+                    onClick={() => {
+                      setJsonEditOpen(false);
+                      setJsonText(JSON.stringify(data, null, 2));
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </>
+            )}
           </div>
           <button
             style={{
