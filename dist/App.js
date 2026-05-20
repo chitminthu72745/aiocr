@@ -2,7 +2,36 @@ import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-run
 import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { uploadPdf } from "./uploadPdf";
-const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? "" : "http://localhost:5678");
+const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? "" : "http://localhost:3000");
+const safeStringify = (obj) => {
+    const seen = new WeakSet();
+    return JSON.stringify(obj, (key, value) => {
+        if (typeof value === "bigint")
+            return value.toString();
+        if (value instanceof Date)
+            return value.toISOString();
+        if (typeof value === "symbol")
+            return value.toString();
+        if (typeof value === "function")
+            return undefined;
+        if (value !== null && typeof value === "object" && !Array.isArray(value)) {
+            if (seen.has(value))
+                return "[Circular]";
+            seen.add(value);
+        }
+        return value;
+    });
+};
+const safeJsonParse = (text) => {
+    return JSON.parse(text, (_key, value) => {
+        if (typeof value === "string") {
+            const bigIntMatch = value.match(/^(\d+)n$/);
+            if (bigIntMatch)
+                return BigInt(bigIntMatch[1]);
+        }
+        return value;
+    });
+};
 export default function App() {
     const [file, setFile] = useState(null);
     const [data, setData] = useState(null);
@@ -22,9 +51,11 @@ export default function App() {
             const result = await uploadPdf(file, { baseUrl: API_BASE });
             setData(result);
             try {
-                sessionStorage.setItem("uploadData", JSON.stringify(result));
+                sessionStorage.setItem("uploadData", safeStringify(result));
             }
-            catch { }
+            catch (e) {
+                console.error("Failed to save to sessionStorage:", e);
+            }
         }
         catch (err) {
             setError(err instanceof Error ? err.message : "Upload failed");
@@ -66,7 +97,7 @@ export default function App() {
             try {
                 const raw = sessionStorage.getItem("uploadData");
                 if (raw)
-                    setData(JSON.parse(raw));
+                    setData(safeJsonParse(raw));
             }
             catch { }
         }
@@ -74,16 +105,16 @@ export default function App() {
     useEffect(() => {
         if (data) {
             try {
-                setJsonText(JSON.stringify(data, null, 2));
+                setJsonText(safeStringify(data));
             }
             catch { }
         }
     }, [data]);
     const saveEditedJson = useCallback(() => {
         try {
-            const parsed = JSON.parse(jsonText);
+            const parsed = safeJsonParse(jsonText);
             setData(parsed);
-            sessionStorage.setItem("uploadData", JSON.stringify(parsed));
+            sessionStorage.setItem("uploadData", safeStringify(parsed));
             setError(null);
             setJsonEditOpen(false);
         }
@@ -91,7 +122,7 @@ export default function App() {
             setError("Invalid JSON format");
         }
     }, [jsonText]);
-    return (_jsxs("div", { style: styles.container, children: [_jsx("h1", { style: styles.title, children: "PDF Upload" }), _jsx("p", { style: styles.subtitle, children: "POST /webhook-test/upload_pdf" }), _jsxs("div", { style: {
+    return (_jsxs("div", { style: styles.container, children: [_jsx("h1", { style: styles.title, children: "PDF Upload" }), _jsx("p", { style: styles.subtitle, children: "POST /api/ocr/proposal" }), _jsxs("div", { style: {
                     ...styles.dropzone,
                     ...(drag ? styles.dropzoneDrag : {}),
                 }, onDrop: onDrop, onDragOver: onDragOver, onDragLeave: onDragLeave, children: [_jsx("input", { type: "file", accept: ".pdf,application/pdf", onChange: onFileChange, style: styles.input }), file ? (_jsx("p", { style: styles.fileName, children: file.name })) : (_jsx("p", { style: styles.hint, children: "Drop a PDF here or click to browse" }))] }), _jsx("button", { style: {
@@ -110,7 +141,7 @@ export default function App() {
                                             fontSize: 13,
                                         } }), _jsxs("div", { style: { display: "flex", gap: 8, marginTop: 8 }, children: [_jsx("button", { style: { ...styles.button, background: "#22c55e", color: "#0f172a", width: "auto", padding: "10px 16px" }, onClick: saveEditedJson, children: "Save JSON" }), _jsx("button", { style: { ...styles.button, background: "#ef4444", color: "#fff", width: "auto", padding: "10px 16px" }, onClick: () => {
                                                     setJsonEditOpen(false);
-                                                    setJsonText(JSON.stringify(data, null, 2));
+                                                    setJsonText(safeStringify(data));
                                                 }, children: "Cancel" })] })] }))] }), _jsx("button", { style: {
                             ...styles.button,
                             marginTop: 12,

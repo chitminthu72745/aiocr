@@ -8,7 +8,7 @@ function firstObject(v) {
         return v[0];
     return null;
 }
-function getByPath(obj, path) {
+export function getByPath(obj, path) {
     if (obj == null)
         return undefined;
     const parts = path.split(".");
@@ -57,6 +57,8 @@ export function bindValue(data, keys) {
             if (v != null && typeof v === "string")
                 return v;
             if (v != null && typeof v === "number")
+                return String(v);
+            if (v != null && typeof v === "boolean")
                 return String(v);
         }
     }

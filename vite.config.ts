@@ -6,8 +6,8 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      "/webhook-test": {
-        target: "http://localhost:5678",
+      "/api": {
+        target: "http://localhost:3000",
         changeOrigin: true,
       },
     },

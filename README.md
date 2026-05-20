@@ -1,6 +1,6 @@
 # API Binding – PDF Upload
 
-Type-safe binding for the `POST /webhook-test/upload_pdf` endpoint.
+Type-safe binding for the `POST /api/ocr/proposal` endpoint.
 
 ## Setup
 
@@ -15,7 +15,7 @@ npm run build
 npm run dev
 ```
 
-Opens http://localhost:5173 – drag & drop or select a PDF, click Upload, and view the JSON response. Vite proxies `/webhook-test` to `http://localhost:5678`.
+Opens http://localhost:5173 – drag & drop or select a PDF, click Upload, and view the JSON response. Vite proxies `/api` to `http://localhost:3000`.
 
 ## Usage
 
@@ -68,6 +68,6 @@ export interface UploadPdfResponse {
 
 | Option     | Default             | Description                          |
 |-----------|---------------------|--------------------------------------|
-| `baseUrl` | `http://localhost:5678` | API base URL                    |
+| `baseUrl` | `http://localhost:3000` | API base URL                    |
 | `fieldName` | `file`            | Form field name for the PDF          |
 | `filename` | `document.pdf`     | Filename when using `Blob` (not `File`) |

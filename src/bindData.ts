@@ -10,7 +10,7 @@ function firstObject(v: unknown): Record<string, unknown> | null {
   return null;
 }
 
-function getByPath(obj: unknown, path: string): unknown {
+export function getByPath(obj: unknown, path: string): unknown {
   if (obj == null) return undefined;
   const parts = path.split(".");
   let cur: unknown = obj;
@@ -59,6 +59,7 @@ export function bindValue(
       const v = getByPath(src, key);
       if (v != null && typeof v === "string") return v;
       if (v != null && typeof v === "number") return String(v);
+      if (v != null && typeof v === "boolean") return String(v);
     }
   }
   return "";

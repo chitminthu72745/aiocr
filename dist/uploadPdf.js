@@ -1,7 +1,7 @@
-const DEFAULT_BASE_URL = "http://localhost:5678";
+const DEFAULT_BASE_URL = "http://localhost:3000";
 const DEFAULT_FIELD_NAME = "file";
 /**
- * Uploads a PDF file to the webhook API and returns the JSON response as typed data.
+ * Uploads a PDF file to the OCR API and returns the JSON response as typed data.
  *
  * @param file - PDF file (File in browser or Blob/Buffer in Node)
  * @param options - Optional base URL and form field name
@@ -10,7 +10,7 @@ const DEFAULT_FIELD_NAME = "file";
 export async function uploadPdf(file, options = {}) {
     const baseUrl = options.baseUrl ?? DEFAULT_BASE_URL;
     const fieldName = options.fieldName ?? DEFAULT_FIELD_NAME;
-    const url = `${baseUrl}/webhook-test/upload_pdf`;
+    const url = `${baseUrl}/api/ocr/proposal`;
     const formData = new FormData();
     const fileName = file instanceof File ? file.name : options.filename ?? "document.pdf";
     formData.append(fieldName, file, fileName);

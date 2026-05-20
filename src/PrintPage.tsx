@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import type { UploadPdfResponse } from "./types";
 import FiveThreePrint from "./FiveThreePrint";
+import { bindValue } from "./bindData";
 
 function get(obj: any, path: string, fallback: any = ""): any {
   try {
@@ -16,7 +17,12 @@ function set(obj: any, path: string, value: any) {
   let cur = obj;
   for (let i = 0; i < parts.length - 1; i++) {
     const k = parts[i];
-    if (cur[k] == null || typeof cur[k] !== "object") cur[k] = {};
+    const nextK = parts[i + 1];
+    const isNextNumeric = !isNaN(Number(nextK));
+
+    if (cur[k] == null || typeof cur[k] !== "object") {
+      cur[k] = isNextNumeric ? [] : {};
+    }
     cur = cur[k];
   }
   cur[parts[parts.length - 1]] = value;
@@ -63,6 +69,92 @@ export default function PrintPage() {
 
   const startEdit = () => {
     const snapshot = JSON.parse(JSON.stringify(root ?? {}));
+
+    // Pre-populate missing fields using bindValue logic for better OCR data binding
+    const mappings = [
+      { path: "proposal_no", keys: ["proposal_no", "proposalNumber"] },
+      { path: "policy_no", keys: ["policy_no", "policyNumber", "policy_id", "policyId"] },
+      { path: "receipt_no", keys: ["receipt_no", "invoice_no", "receiptNumber", "invoiceNumber"] },
+      { path: "date", keys: ["date", "issued_at", "issue_date", "created_at"] },
+      { path: "agent_name", keys: ["agent_name"] },
+      { path: "data.agent_name", keys: ["data.agent_name", "agent_name", "agentId", "agent_id"] },
+      { path: "data.insured.name", keys: ["data.insured.name", "insured.name", "insured_name", "applicant_name", "customer_name", "name"] },
+      { path: "data.insured.father_name", keys: ["insured.father_name", "father_name"] },
+      { path: "data.insured.nrc_frc_passport", keys: ["insured.nrc_frc_passport", "nrc", "nrc_no", "nrcNumber", "frc", "passport"] },
+      { path: "data.insured.dob", keys: ["insured.dob", "dob", "date_of_birth"] },
+      { path: "data.insured.age_next_birthday", keys: ["insured.age_next_birthday", "age_next_birthday", "age", "ageNBD"] },
+      { path: "data.insured.insurance_term_years", keys: ["insured.insurance_term_years", "insured.term_of_insurance", "term_of_insurance"] },
+      { path: "data.insured.occupation", keys: ["insured.occupation", "occupation", "job", "profession"] },
+      { path: "data.insured.address", keys: ["insured.address", "address", "residential_address", "home_address"] },
+      { path: "data.insured.phone", keys: ["insured.phone", "phone"] },
+      { path: "data.insured.email", keys: ["insured.email", "email"] },
+      { path: "data.insured.initial_sum_assured_mmk", keys: ["insured.initial_sum_assured_mmk"] },
+      { path: "data.insured.premium", keys: ["insured.premium"] },
+      { path: "data.insured.mode_of_payment", keys: ["insured.mode_of_payment"] },
+      { path: "data.insured.height_cm", keys: ["insured.height_cm", "height_cm"] },
+      { path: "data.insured.weight_kg", keys: ["insured.weight_kg", "weight_kg"] },
+      { path: "data.insured.is_smoker", keys: ["insured.is_smoker", "is_smoker"] },
+      { path: "data.insured.health_history", keys: ["insured.health_history", "health_history"] },
+      { path: "data.policyStartDate", keys: ["policyStartDate"] },
+      { path: "data.policyEndDate", keys: ["policyEndDate"] },
+      { path: "data.premium_payer.name", keys: ["premium_payer.name"] },
+      { path: "data.premium_payer.occupation", keys: ["premium_payer.occupation"] },
+      { path: "data.premium_payer.company_name", keys: ["premium_payer.company_name"] },
+      { path: "data.premium_payer.industry_sector", keys: ["premium_payer.industry_sector"] },
+      { path: "data.premium_payer.income", keys: ["premium_payer.income"] },
+      { path: "data.premium_payer.relation_to_insured", keys: ["premium_payer.relation_to_insured"] },
+      { path: "data.bank_info.bank_account_name", keys: ["bank_account_name", "account_name"] },
+      { path: "data.bank_info.bank_account_number", keys: ["bank_account_number", "account_number"] },
+      { path: "data.bank_info.bank_branch_name", keys: ["bank_branch_name", "branch_name"] },
+      { path: "data.bank_info.bank_branch_code", keys: ["bank_branch_code", "branch_code"] },
+      { path: "personal_sataement", keys: ["personal_sataement", "personal_statement"] },
+    ];
+
+    mappings.forEach(m => {
+      const currentVal = get(snapshot, m.path);
+      if (!currentVal || currentVal === "") {
+        const bestVal = bindValue(data, m.keys);
+        if (bestVal) {
+          set(snapshot, m.path, bestVal);
+        }
+      }
+    });
+
+    // Normalize beneficiaries to always be under data.beneficiaries for consistent editing
+    const rawBene = snapshot.data?.beneficiaries ?? snapshot.beneficiaries;
+    if (Array.isArray(rawBene)) {
+      if (!snapshot.data) snapshot.data = {};
+      snapshot.data.beneficiaries = rawBene.map((b: any) => ({
+        ...b,
+        nrc_number: b.nrc_number ?? b.nrc ?? "",
+        relationship: b.relationship ?? b.relation ?? "",
+      }));
+      delete snapshot.beneficiaries;
+    }
+
+    // Normalize existing policies
+    const rawPolicies = snapshot.data?.existing_policies ?? snapshot.existing_policies;
+    if (Array.isArray(rawPolicies)) {
+      if (!snapshot.data) snapshot.data = {};
+      snapshot.data.existing_policies = rawPolicies;
+      delete snapshot.existing_policies;
+    }
+
+    // Normalize friend contact
+    const rawFriend = snapshot.data?.friend_contact ?? snapshot.friend_contact;
+    if (rawFriend && typeof rawFriend === "object" && !Array.isArray(rawFriend)) {
+      if (!snapshot.data) snapshot.data = {};
+      snapshot.data.friend_contact = rawFriend;
+      delete snapshot.friend_contact;
+    }
+
+    // Normalize personal statement typo
+    const rawPS = snapshot.personal_sataement ?? snapshot.personal_statement;
+    if (Array.isArray(rawPS)) {
+      snapshot.personal_sataement = rawPS;
+      delete snapshot.personal_statement;
+    }
+
     setDraft(snapshot);
     setEditing(true);
   };
@@ -104,11 +196,9 @@ export default function PrintPage() {
   const ensureBeneRows = (rows: number) => {
     setDraft((prev: any) => {
       const next = JSON.parse(JSON.stringify(prev));
-      const arr: any[] = Array.isArray(next?.data?.beneficiaries)
-        ? next.data.beneficiaries
-        : Array.isArray(next?.beneficiaries)
-          ? next.beneficiaries
-          : (next.data = { ...(next.data || {}), beneficiaries: [] }, next.data.beneficiaries);
+      if (!next.data) next.data = {};
+      if (!Array.isArray(next.data.beneficiaries)) next.data.beneficiaries = [];
+      const arr = next.data.beneficiaries;
       while (arr.length < rows) arr.push({ name: "", nrc_number: "", relationship: "", percentage: "" });
       return next;
     });
@@ -229,6 +319,8 @@ export default function PrintPage() {
               <div style={grid2}>
                 <label><span>Policy No</span><input style={fld} {...onField("policy_no")} /></label>
                 <label><span>Proposal No (top)</span><input style={fld} {...onField("proposal_no")} /></label>
+                <label><span>Receipt No</span><input style={fld} {...onField("receipt_no")} /></label>
+                <label><span>Date</span><input style={fld} {...onField("date")} /></label>
                 <label><span>Agent Name</span><input style={fld} {...onField("data.agent_name")} /></label>
               </div>
             </section>
@@ -243,10 +335,13 @@ export default function PrintPage() {
                 <label><span>Age Next Birthday</span><input style={fld} {...onField("data.insured.age_next_birthday")} /></label>
                 <label><span>Insurance Term (years)</span><input style={fld} {...onField("data.insured.insurance_term_years")} /></label>
                 <label><span>Occupation</span><input style={fld} {...onField("data.insured.occupation")} /></label>
-                <label><span>Address</span><input style={fld} {...onField("data.insured.address")} /></label>
                 <label><span>Initial Sum Assured (MMK)</span><input style={fld} {...onField("data.insured.initial_sum_assured_mmk")} /></label>
                 <label><span>Premium</span><input style={fld} {...onField("data.insured.premium")} /></label>
                 <label><span>Mode of Payment</span><input style={fld} {...onField("data.insured.mode_of_payment")} /></label>
+                <label><span>Height (cm)</span><input style={fld} {...onField("data.insured.height_cm")} /></label>
+                <label><span>Weight (kg)</span><input style={fld} {...onField("data.insured.weight_kg")} /></label>
+                <label><span>Is Smoker</span><input style={fld} {...onField("data.insured.is_smoker")} /></label>
+                <label style={{ gridColumn: "1 / span 3" }}><span>Health History</span><textarea style={{ ...fld, height: 60 }} {...onField("data.insured.health_history")} /></label>
                 <label style={{ gridColumn: "1 / span 3" }}><span>Address</span><textarea style={{ ...fld, height: 60 }} {...onField("data.insured.address")} /></label>
                 <label><span>Phone</span><input style={fld} {...onField("data.insured.phone")} /></label>
                 <label><span>Email</span><input style={fld} {...onField("data.insured.email")} /></label>
@@ -325,26 +420,35 @@ export default function PrintPage() {
                 <h4 style={cardTitle}>Beneficiaries</h4>
                 <div style={{ display: "flex", gap: 8 }}>
                   <button onClick={() => {
-                    const draftBeneLen = (draft?.data?.beneficiaries ?? draft?.beneficiaries ?? []).length;
-                    ensureBeneRows((draftBeneLen || 0) + 1);
+                    const draftBeneLen = (draft?.data?.beneficiaries ?? []).length;
+                    ensureBeneRows(draftBeneLen + 1);
                   }} style={smallBtn}>+ Add</button>
                   <button onClick={() => ensureBeneRows(4)} style={smallBtn}>Ensure 4 Rows</button>
                 </div>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "40px 1fr 1fr 1fr 120px 80px", gap: 8 }}>
                 {(() => {
-                  const draftBene = draft?.data?.beneficiaries ?? draft?.beneficiaries ?? [];
-                  const rows = draftBene.length ? draftBene : [{}, {}, {}, {}];
-                  return rows.slice(0, Math.max(4, draftBene.length || 0)).map((_: any, i: number) => (
-                    <div key={i} style={{ display: "contents" }}>
-                      <div style={{ alignSelf: "center" }}>{i + 1}</div>
-                      <input style={fld} {...onField(`data.beneficiaries.${i}.name`)} placeholder="Name" />
-                      <input style={fld} {...onField(`data.beneficiaries.${i}.nrc_number`)} placeholder="NRC Number" />
-                      <input style={fld} {...onField(`data.beneficiaries.${i}.relationship`)} placeholder="Relationship" />
-                      <input style={fld} {...onField(`data.beneficiaries.${i}.percentage`)} placeholder="%" />
-                      <button onClick={() => removeArrayIndex("data.beneficiaries", i)} style={smallBtn}>Remove</button>
-                    </div>
-                  ));
+                  const draftBene = draft?.data?.beneficiaries ?? [];
+                  const displayRows = draftBene.length > 4 ? draftBene : [...draftBene, ...Array(Math.max(0, 4 - draftBene.length)).fill({})];
+                  
+                  return displayRows.map((b: any, i: number) => {
+                    // Use normalized keys for the inputs to match PrintPage's set/get logic
+                    const namePath = `data.beneficiaries.${i}.name`;
+                    const nrcPath = `data.beneficiaries.${i}.nrc_number`;
+                    const relPath = `data.beneficiaries.${i}.relationship`;
+                    const pctPath = `data.beneficiaries.${i}.percentage`;
+                    
+                    return (
+                      <div key={i} style={{ display: "contents" }}>
+                        <div style={{ alignSelf: "center" }}>{i + 1}</div>
+                        <input style={fld} {...onField(namePath)} placeholder="Name" />
+                        <input style={fld} {...onField(nrcPath)} placeholder="NRC Number" />
+                        <input style={fld} {...onField(relPath)} placeholder="Relationship" />
+                        <input style={fld} {...onField(pctPath)} placeholder="%" />
+                        <button onClick={() => removeArrayIndex("data.beneficiaries", i)} style={smallBtn}>Remove</button>
+                      </div>
+                    );
+                  });
                 })()}
               </div>
             </section>
@@ -391,6 +495,30 @@ export default function PrintPage() {
                   />
                   <span>Signature Handwritten</span>
                 </label>
+              </div>
+            </section>
+
+            <section style={card(12)}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <h4 style={cardTitle}>Personal Statement</h4>
+                <button
+                  onClick={() => ensureArray("personal_sataement", (draft?.personal_sataement?.length ?? 0) + 1, () => ({
+                    question: "",
+                    answer: "",
+                  }))}
+                  style={smallBtn}
+                >
+                  + Add
+                </button>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 100px 80px", gap: 12 }}>
+                {(Array.isArray(draft?.personal_sataement) ? draft.personal_sataement : []).map((_: any, i: number) => (
+                  <div key={i} style={{ display: "contents" }}>
+                    <input style={fld} {...onField(`personal_sataement.${i}.question`)} placeholder="Question" />
+                    <input style={fld} {...onField(`personal_sataement.${i}.answer`)} placeholder="Answer" />
+                    <button onClick={() => removeArrayIndex("personal_sataement", i)} style={smallBtn}>Remove</button>
+                  </div>
+                ))}
               </div>
             </section>
           </div>
