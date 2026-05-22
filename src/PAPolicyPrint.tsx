@@ -48,7 +48,7 @@ const PAPolicyPrint = ({ data }: Props) => {
                                     </p> 
                                     <div className='text-line'>
                                         <p>
-                                            90909090909090
+                                           {get(["policy_no", "policyNumber", "policy_id", "policyId"]) || "—"}
                                         </p>
                                         <p>
                                             ----------------------------------------
@@ -64,7 +64,7 @@ const PAPolicyPrint = ({ data }: Props) => {
                                 <td>
                                     <div className='text-line'>
                                         <p className='text-center'>
-                                            90909090909090
+                                            {get(["data.insured.name", "insured.name", "insured_name", "applicant_name", "customer_name", "name"]) || "—"}
                                         </p>
                                         <p>
                                             ------------------------------------------------------------
@@ -75,7 +75,7 @@ const PAPolicyPrint = ({ data }: Props) => {
                                 <td>
                                     <div className='text-line'>
                                         <p className='text-center'>
-                                            90909090909090
+                                            {get(["data.insured.father_name", "insured.father_name", "father_name"]) || "—"}
                                         </p>
                                         <p>
                                             -----------------------------------------------------------------------------------
@@ -90,7 +90,7 @@ const PAPolicyPrint = ({ data }: Props) => {
                                 <td >
                                     <div className='text-line'>
                                         <p className='text-center'>
-                                            90909090909090
+                                            {get(["insured.nrc_frc_passport", "nrc", "nrc_no", "nrcNumber", "frc", "passport"]) || "—"}
                                         </p>
                                         <p>
                                             ------------------------------------------------------------------------------------------------------------------------------------
@@ -105,7 +105,7 @@ const PAPolicyPrint = ({ data }: Props) => {
                                 <td >
                                     <div className='text-line'>
                                         <p className='text-center'>
-                                            90909090909090
+                                            {get(["insured.occupation", "occupation", "job", "profession"]) || "—"}
                                         </p>
                                         <p>
                                             -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -120,7 +120,7 @@ const PAPolicyPrint = ({ data }: Props) => {
                                 <td >
                                     <div className='text-line'>
                                         <p className='text-center'>
-                                            90909090909090
+                                            {get(["insured.address", "address", "residential_address", "home_address"]) || "—"}
                                         </p>
                                         <p>
                                             ------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -134,7 +134,7 @@ const PAPolicyPrint = ({ data }: Props) => {
                                 <td>
                                     <div className='text-line'>
                                         <p className='text-center'>
-                                            90909090909090
+                                            {get(["data.insured.phone", "insured.phone", "phone"]) || "—"}
                                         </p>
                                         <p>
                                             -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -202,7 +202,7 @@ const PAPolicyPrint = ({ data }: Props) => {
                                 <td>
                                     <div className='text-line'>
                                         <p className='text-center'>
-                                            ၂၀.၀၅.၂၀၂၅
+                                            {get(["policyStartDate"]) || "—"}
                                         </p>
                                         <p>
                                             -------------------------
@@ -213,7 +213,7 @@ const PAPolicyPrint = ({ data }: Props) => {
                                 <td>
                                     <div className='text-line'>
                                         <p className='text-center'>
-                                            ၁၉. ၀၅. ၂၀၂၆
+                                            {get(["policyEndDate"]) || "—"}
                                         </p>
                                         <p>
                                             --------------------------
