@@ -150,7 +150,7 @@ const PAPolicyPrint = ({ data }: Props) => {
                                 <td>
                                     <div className='text-line'>
                                         <p className='text-center'>
-                                            {get(["insured.initial_sum_assured_mmk"]) || '-'}
+                                            {get(["insured.initial_sum_assured_mmk", "sum_assured", "sumAssured", "insured_amount"]) || '-'}
                                         </p>
                                         <p>
                                             ---------------------------------------------
@@ -161,7 +161,7 @@ const PAPolicyPrint = ({ data }: Props) => {
                                 <td>
                                     <div className='text-line'>
                                         <p className='text-center'>
-                                            90909090909090
+                                            {get(["insured.initial_sum_assured_mmk", "sum_assured", "sumAssured", "insured_amount"]) || '-'}
                                         </p>
                                         <p>
                                             -------------------------------------------------------------------------------------------
@@ -176,7 +176,7 @@ const PAPolicyPrint = ({ data }: Props) => {
                                 <td>
                                     <div className='text-line'>
                                         <p className='text-center'>
-                                            90909090909090
+                                            {get(["insured.premium", "premium", "total_premium", "totalPremium"]) || "—"}
                                         </p>
                                         <p>
                                             ------------------------------------------------------------
@@ -187,7 +187,7 @@ const PAPolicyPrint = ({ data }: Props) => {
                                 <td>
                                     <div className='text-line'>
                                         <p className='text-center'>
-                                            90909090909090
+                                            {get(["insured.premium", "premium", "total_premium", "totalPremium"]) || "—"}
                                         </p>
                                         <p>
                                             -----------------------------------------------------------------------------------
@@ -224,7 +224,7 @@ const PAPolicyPrint = ({ data }: Props) => {
                                 <td>
                                     <div className='text-line'>
                                         <p className='text-center'>
-                                            90909090909090
+                                            {get(["data.insured.insurance_term_years", "term_of_insurance", "policy_term"]) || "—"}
                                         </p>
                                         <p>
                                             --------------------------------------------------------------------
@@ -241,7 +241,7 @@ const PAPolicyPrint = ({ data }: Props) => {
                                 <td width='65%'>
                                     <div className='text-line'>
                                         <p className='text-center'>
-                                            90909090909090
+                                            {beneficiaries[0]?.name || "—"}
                                         </p>
                                         <p>
                                             -----------------------------------------------------------------------------------------------------------------------------
@@ -256,7 +256,7 @@ const PAPolicyPrint = ({ data }: Props) => {
                                 <td width='65%'>
                                     <div className='text-line'>
                                         <p className='text-center'>
-                                            90909090909090
+                                            {beneficiaries[0]?.nrc_number || beneficiaries[0]?.nrc || "—"}
                                         </p>
                                         <p>
                                             -----------------------------------------------------------------------------------------------------------------------------
@@ -271,7 +271,7 @@ const PAPolicyPrint = ({ data }: Props) => {
                                 <td width='65%'>
                                     <div className='text-line'>
                                         <p className='text-center'>
-                                            90909090909090
+                                            {beneficiaries[0]?.dob || beneficiaries[0]?.age || "—"}
                                         </p>
                                         <p>
                                             -----------------------------------------------------------------------------------------------------------------------------
@@ -286,7 +286,7 @@ const PAPolicyPrint = ({ data }: Props) => {
                                 <td width='65%'>
                                     <div className='text-line'>
                                         <p className='text-center'>
-                                            90909090909090
+                                            {beneficiaries[0]?.relationship || beneficiaries[0]?.relation || "—"}
                                         </p>
                                         <p>
                                             -----------------------------------------------------------------------------------------------------------------------------
@@ -301,7 +301,7 @@ const PAPolicyPrint = ({ data }: Props) => {
                                 <td  width='65%'>
                                     <div className='text-line'>
                                         <p className='text-center'>
-                                            90909090909090
+                                            {beneficiaries[0]?.address || beneficiaries[0]?.phone || "—"}
                                         </p>
                                         <p className='flex-end'>
                                             -----------------------------------------------------------------------------------------------------------------------------
@@ -315,7 +315,7 @@ const PAPolicyPrint = ({ data }: Props) => {
                                 <td>
                                     <div className='text-line'>
                                         <p className='text-center'>
-                                            90909090909090
+                                            {beneficiaries[0]?.phone || "—"}
                                         </p>
                                         <p>
                                             -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -354,7 +354,7 @@ const PAPolicyPrint = ({ data }: Props) => {
                                             <td width='300px'>
                                                 <div className='text-line'>
                                                     <p className='text-center'>
-                                                        90909090909090
+                                                        &nbsp;
                                                     </p>
                                                     <p>
                                                         ------------------------------------------------------
@@ -369,7 +369,7 @@ const PAPolicyPrint = ({ data }: Props) => {
                                             <td width='300px'>
                                                 <div className='text-line'>
                                                     <p className='text-center'>
-                                                        90909090909090
+                                                        &nbsp;
                                                     </p>
                                                     <p>
                                                         ------------------------------------------------------
@@ -384,7 +384,7 @@ const PAPolicyPrint = ({ data }: Props) => {
                                             <td width='300px'>
                                                 <div className='text-line'>
                                                     <p className='text-center'>
-                                                        90909090909090
+                                                        {get(["date", "issued_at", "issue_date", "created_at"]) || "—"}
                                                     </p>
                                                     <p>
                                                         ------------------------------------------------------
