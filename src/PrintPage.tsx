@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import type { UploadPdfResponse } from "./types";
 import FiveThreePrint from "./FiveThreePrint";
+import PAPolicyPrint from "./PAPolicyPrint";
 import { bindValue } from "./bindData";
 
 function get(obj: any, path: string, fallback: any = ""): any {
@@ -35,6 +36,18 @@ export default function PrintPage() {
   const [data, setData] = useState<UploadPdfResponse | null>(initialFromState);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<any>(null);
+  const [productType, setProductType] = useState<"5/3" | "PA">("5/3");
+
+  useEffect(() => {
+    if (data) {
+      const productName = bindValue(data, ["product_name", "productName", "product_type", "productType"]);
+      if (productName.toLowerCase().includes("pa") || productName.toLowerCase().includes("personal accident")) {
+        setProductType("PA");
+      } else {
+        setProductType("5/3");
+      }
+    }
+  }, [data]);
 
   useEffect(() => {
     if (initialFromState) {
@@ -293,6 +306,14 @@ export default function PrintPage() {
             </button>
           </>
         )}
+        <select
+          value={productType}
+          onChange={(e) => setProductType(e.target.value as any)}
+          style={{ padding: "8px 12px", border: "1px solid #cbd5e1", borderRadius: 6, background: "#fff", cursor: "pointer" }}
+        >
+          <option value="5/3">5/3 Smart Saving Plus</option>
+          <option value="PA">PA Personal Accident</option>
+        </select>
       </div>
 
       {editing && (
@@ -525,7 +546,11 @@ export default function PrintPage() {
         </div>
       )}
 
-      <FiveThreePrint data={renderData} />
+      {productType === "5/3" ? (
+        <FiveThreePrint data={renderData} />
+      ) : (
+        <PAPolicyPrint data={renderData} />
+      )}
     </div>
   );
 }
