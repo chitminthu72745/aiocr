@@ -150,7 +150,7 @@ const PAPolicyPrint = ({ data }: Props) => {
                                 <td>
                                     <div className='text-line'>
                                         <p className='text-center'>
-                                            90909090909090
+                                            {get(["insured.initial_sum_assured_mmk"]) || '-'}
                                         </p>
                                         <p>
                                             ---------------------------------------------
@@ -331,7 +331,7 @@ const PAPolicyPrint = ({ data }: Props) => {
                                 <td  width='65%'>
                                     <div className='text-line'>
                                         <p className='text-center'>
-                                            90909090909090
+                                            {get(["data.agent_name", "agent_name", "agentId", "agent_id"]) || "—"}
                                         </p>
                                         <p>
                                             -----------------------------------------------------------------------------------------------------------------------------
